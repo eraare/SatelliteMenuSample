@@ -8,7 +8,7 @@ import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
-import android.view.animation.DecelerateInterpolator;
+import android.view.animation.BounceInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
@@ -24,13 +24,13 @@ import java.util.List;
  */
 public class SatelliteMenu extends FrameLayout {
     private static final int D_VALUE = 20;
-    private static final float DEFAULT_MAIN_ANGLE = 45F; /*默认主菜单旋转角度*/
+    private static final float DEFAULT_MAIN_ANGLE = 135F; /*默认主菜单旋转角度*/
     private static final int DEFAULT_MAIN_ICON = R.drawable.icon_main_sat; /*主菜单默认图片资源*/
     private static final int DEFAULT_SIZE = 50; /*主菜单默认尺寸*/
     private static final int DEFAULT_GRAVITY = Gravity.BOTTOM | Gravity.LEFT; /*菜单位置*/
     private static final int DEFAULT_RADIUS = 150; /*默认半径*/
     private static final float DEFAULT_ANGLE = 90F; /*默认角度*/
-    private static final int DEFAULT_DURATION = 350; /*默认时长*/
+    private static final int DEFAULT_DURATION = 400; /*默认时长*/
 
     private Context mContext; /*上下文*/
     private List<MenuItem> mMenuItems; /*菜单项*/
@@ -213,6 +213,9 @@ public class SatelliteMenu extends FrameLayout {
         float toY = (float) translationY;
         float alphaFrom = 0.0f;
         float alphaTo = 1.0f;
+        float rotateFrom = 0;
+        float rotateTo = 360;
+
         float rotationFrom = 0f;
         float rotationTo = DEFAULT_MAIN_ANGLE;
 
@@ -226,14 +229,17 @@ public class SatelliteMenu extends FrameLayout {
             alphaTo = 0.0f;
             rotationFrom = DEFAULT_MAIN_ANGLE;
             rotationTo = 0f;
+            rotateFrom = 360;
+            rotateTo = 0;
         }
 
         /*子菜单的动画*/
         PropertyValuesHolder translationXHolder = PropertyValuesHolder.ofFloat("translationX", fromX, toX);
         PropertyValuesHolder translationYHolder = PropertyValuesHolder.ofFloat("translationY", fromY, toY);
         PropertyValuesHolder alphaHolder = PropertyValuesHolder.ofFloat("alpha", alphaFrom, alphaTo);
+        PropertyValuesHolder rotationHolder = PropertyValuesHolder.ofFloat("rotation", rotateFrom, rotateTo);
         ObjectAnimator itemAnimator = ObjectAnimator
-                .ofPropertyValuesHolder(view, translationXHolder, translationYHolder, alphaHolder);
+                .ofPropertyValuesHolder(view, translationXHolder, translationYHolder, alphaHolder, rotationHolder);
 
         /*主菜单的动画*/
         ObjectAnimator mainAnimator = ObjectAnimator.ofFloat(mainMenu, "rotation", rotationFrom, rotationTo);
@@ -241,7 +247,7 @@ public class SatelliteMenu extends FrameLayout {
         /*把两个动画集合起来*/
         AnimatorSet set = new AnimatorSet();
         set.setDuration(this.duration);
-        set.setInterpolator(new DecelerateInterpolator());
+        set.setInterpolator(new BounceInterpolator());
         set.playTogether(itemAnimator, mainAnimator);
         set.start();
     }
