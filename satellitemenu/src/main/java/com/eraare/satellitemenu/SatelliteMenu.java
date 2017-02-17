@@ -4,6 +4,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
@@ -22,13 +23,14 @@ import java.util.List;
  * @since 2017-02-16
  */
 public class SatelliteMenu extends FrameLayout {
+    private static final int D_VALUE = 20;
     private static final float DEFAULT_MAIN_ANGLE = 45F; /*默认主菜单旋转角度*/
     private static final int DEFAULT_MAIN_ICON = R.drawable.icon_main_sat; /*主菜单默认图片资源*/
-    private static final int DEFAULT_SIZE = 150; /*主菜单默认尺寸*/
+    private static final int DEFAULT_SIZE = 50; /*主菜单默认尺寸*/
     private static final int DEFAULT_GRAVITY = Gravity.BOTTOM | Gravity.LEFT; /*菜单位置*/
-    private static final float DEFAULT_RADIUS = 350F; /*默认半径*/
+    private static final int DEFAULT_RADIUS = 150; /*默认半径*/
     private static final float DEFAULT_ANGLE = 90F; /*默认角度*/
-    private static final long DEFAULT_DURATION = 350; /*默认时长*/
+    private static final int DEFAULT_DURATION = 350; /*默认时长*/
 
     private Context mContext; /*上下文*/
     private List<MenuItem> mMenuItems; /*菜单项*/
@@ -40,9 +42,9 @@ public class SatelliteMenu extends FrameLayout {
     /*以下为属性值*/
     private int mainIcon; /*主菜单图标*/
     private int size; /*菜单尺寸*/
-    private float radius; /*扇形半径*/
+    private int radius; /*扇形半径*/
     private float angle; /*扇形角度*/
-    private long duration; /*动画时长*/
+    private int duration; /*动画时长*/
     private int gravity; /*菜单位置*/
 
     public SatelliteMenu(Context context) {
@@ -55,19 +57,41 @@ public class SatelliteMenu extends FrameLayout {
 
     public SatelliteMenu(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        this.mContext = context;
+        this.mContext = context;/*上下文*/
+        loadAttributes(context, attrs, defStyleAttr);/*加载属性*/
         initialize();/*初始化数据*/
+    }
+
+    /**
+     * 加载属性值
+     *
+     * @param context
+     * @param attrs
+     */
+    private void loadAttributes(Context context, AttributeSet attrs, int defStyleAttr) {
+        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.SatelliteMenu, defStyleAttr, 0);
+
+        float defaultSize = DisplayUtils.dip2px(context, DEFAULT_SIZE);
+        float defaultRadius = DisplayUtils.dip2px(context, DEFAULT_RADIUS);
+        this.size = (int) ta.getDimension(R.styleable.SatelliteMenu_size, defaultSize);
+        this.radius = (int) ta.getDimension(R.styleable.SatelliteMenu_radius, defaultRadius);
+        this.mainIcon = ta.getResourceId(R.styleable.SatelliteMenu_icon, DEFAULT_MAIN_ICON);
+        this.duration = ta.getInt(R.styleable.SatelliteMenu_duration, DEFAULT_DURATION);
+        this.angle = ta.getFloat(R.styleable.SatelliteMenu_angle, DEFAULT_ANGLE);
+        this.gravity = ta.getInt(R.styleable.SatelliteMenu_gravity, DEFAULT_GRAVITY);
+
+        ta.recycle();
     }
 
     /*初始化数据*/
     private void initialize() {
         this.isShowing = false;
-        this.radius = DEFAULT_RADIUS;
+        /*this.radius = DEFAULT_RADIUS;
         this.angle = DEFAULT_ANGLE;
         this.duration = DEFAULT_DURATION;
         this.gravity = DEFAULT_GRAVITY;
         this.size = DEFAULT_SIZE;
-        this.mainIcon = DEFAULT_MAIN_ICON;
+        this.mainIcon = DEFAULT_MAIN_ICON;*/
         parseDirection(); /*解析菜单位置*/
         initMainMenu(); /*初始化主菜单*/
     }
@@ -98,7 +122,7 @@ public class SatelliteMenu extends FrameLayout {
     private void initMainMenu() {
         mainMenu = new ImageView(mContext);
         mainMenu.setImageResource(mainIcon);
-        LayoutParams layoutParams = new LayoutParams(size, size, gravity);
+        LayoutParams layoutParams = new LayoutParams(this.size, this.size, gravity);
         mainMenu.setLayoutParams(layoutParams);
         mainMenu.setOnClickListener(this.mOnMenuClickListener);
         this.addView(mainMenu);
@@ -117,6 +141,42 @@ public class SatelliteMenu extends FrameLayout {
             }
         }
     };
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        /*由于FrameLayout里面有一些测量操作其后setMeasuredDimension()*/
+        /*所以super.onMeasure()不能省略且必须在前*/
+        int measuredWidth = measureWidth(widthMeasureSpec);
+        int measuredHeight = measureHeight(heightMeasureSpec);
+        setMeasuredDimension(measuredWidth, measuredHeight);
+    }
+
+    /*宽度测量*/
+    private int measureWidth(int widthMeasureSpec) {
+        int result;
+        int mode = MeasureSpec.getMode(widthMeasureSpec);
+        int size = MeasureSpec.getSize(widthMeasureSpec);
+        if (mode == MeasureSpec.EXACTLY) {
+            result = size;
+        } else {
+            result = this.radius + this.size - D_VALUE;
+        }
+        return result;
+    }
+
+    /*高度测量*/
+    private int measureHeight(int heightMeasureSpec) {
+        int result;
+        int mode = MeasureSpec.getMode(heightMeasureSpec);
+        int size = MeasureSpec.getSize(heightMeasureSpec);
+        if (mode == MeasureSpec.EXACTLY) {
+            result = size;
+        } else {
+            result = this.radius + this.size - D_VALUE;
+        }
+        return result;
+    }
 
     /*Section: 回调接口*/
 
@@ -237,7 +297,7 @@ public class SatelliteMenu extends FrameLayout {
         imageView.setImageResource(menuItem.menuIcon);
         imageView.setTag(menuItem.menuTag);
 
-        LayoutParams layoutParams = new LayoutParams(size - 20, size - 20, gravity);
+        LayoutParams layoutParams = new LayoutParams(size - D_VALUE, size - D_VALUE, gravity);
         imageView.setLayoutParams(layoutParams);
 
         imageView.setOnClickListener(this.mOnClickListener);

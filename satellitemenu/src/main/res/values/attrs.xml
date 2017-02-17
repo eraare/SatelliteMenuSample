@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SatelliteMenu">
+        <attr name="icon" format="reference" />
+        <attr name="size" format="dimension|reference" />
+        <attr name="duration" format="integer" />
+        <attr name="angle" format="float" />
+        <attr name="radius" format="dimension|reference" />
+        <attr name="gravity" format="integer" />
+    </declare-styleable>
+</resources>
